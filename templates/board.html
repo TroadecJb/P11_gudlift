@@ -1,0 +1,22 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Summary | GUDLFT Registration</title>
+</head>
+<body>    
+    <a href="{{url_for('logout')}}">Logout</a>
+    <h3>Clubs:</h3>
+    {%if clubs%}
+    <ul>
+        {%for club in clubs%}
+        <li>
+            {{club['name']}}<br />
+            Number of points: {{club['points']}}
+        </li>
+        <hr />
+        {%endfor%}
+    </ul>
+    {% endif %}
+</body>
+</html>
