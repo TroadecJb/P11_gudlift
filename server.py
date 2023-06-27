@@ -17,6 +17,7 @@ def loadCompetitions():
 
 competitions = loadCompetitions()
 clubs = loadClubs()
+purchaseRecap = {}
 
 app = Flask(__name__)
 app.secret_key = "something_special"
@@ -29,17 +30,24 @@ def index():
 
 @app.route("/showSummary", methods=["POST"])
 def showSummary():
+    currentDate = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     try:
         club = [club for club in clubs if club["email"] == request.form["email"]][0]
     except IndexError:
         flash("Invalid email address")
         return redirect(url_for("index"))
     else:
-        return render_template("welcome.html", club=club, competitions=competitions)
+        return render_template(
+            "welcome.html",
+            club=club,
+            competitions=competitions,
+            currentDate=currentDate,
+        )
 
 
 @app.route("/book/<competition>/<club>")
 def book(competition, club):
+    currentDate = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     foundClub = [c for c in clubs if c["name"] == club][0]
     foundCompetition = [c for c in competitions if c["name"] == competition][0]
 
@@ -50,7 +58,12 @@ def book(competition, club):
 
     else:
         flash("Something went wrong-please try again")
-        return render_template("welcome.html", club=club, competitions=competitions)
+        return render_template(
+            "welcome.html",
+            club=club,
+            competitions=competitions,
+            currentDate=currentDate,
+        )
 
 
 @app.route("/purchasePlaces", methods=["POST"])
@@ -68,14 +81,47 @@ def purchasePlaces():
     # places related var
     placesRequired = int(request.form["places"])
 
-    date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    todayDate = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    if (
-        placesRequired < int(club["points"])
-        and placesRequired <= 12
-        and placesRequired < int(competition["numberOfPlaces"])
-        and date < competition["date"]
-    ):
+    # ajouter dictionnaire de controle split purchase
+    # try:
+    #     bookedPlaces = purchaseRecap[competitionName][clubName]
+    # except KeyError:
+    #     purchaseRecap[competitionName] = {clubName: "0"}
+    # finally:
+    #     bookedPlaces = purchaseRecap[competitionName][clubName]
+
+    # logic for booking
+    if todayDate > competition["date"]:
+        flash(f"This competition is over.")
+        return render_template(
+            "welcome.html",
+            club=club,
+            competitions=competitions,
+            currentDate=todayDate,
+        )
+
+    elif placesRequired > int(competition["numberOfPlaces"]):
+        flash(
+            f"There is only {competition['numberOfPlaces']} available for this competiton."
+        )
+        return render_template(
+            "welcome.html", club=club, competitions=competitions, currentDate=todayDate
+        )
+
+    elif placesRequired > 12:
+        flash(f"You can not book more than 12 places for any competition.")
+        return render_template(
+            "welcome.html", club=club, competitions=competitions, currentDate=todayDate
+        )
+
+    elif placesRequired > int(club["points"]):
+        flash(f"Not enough points, you can only book {club['points']}.")
+        return render_template(
+            "welcome.html", club=club, competitions=competitions, currentDate=todayDate
+        )
+
+    else:
         club["points"] = int(club["points"]) - placesRequired
         competition["numberOfPlaces"] = (
             int(competition["numberOfPlaces"]) - placesRequired
@@ -86,23 +132,13 @@ def purchasePlaces():
             competition["numberOfPlaces"]
         )
         clubs[clubIndex]["points"] = str(club["points"])
+        # adding key/value to count how many places a club purchases for a competition, even if doig multiple purchases.
+        competitions[competitionIndex][club["name"]] += str(placesRequired)
 
         flash("Great-booking complete!")
-        return render_template("welcome.html", club=club, competitions=competitions)
-
-    elif placesRequired > 12:
-        flash(f"You can not book more than 12 places for any competition.")
-        return render_template("welcome.html", club=club, competitions=competitions)
-
-    elif placesRequired > int(competition["numberOfPlaces"]):
-        flash(
-            f"There is only {competition['numberOfPlaces']} available for this competiton."
+        return render_template(
+            "welcome.html", club=club, competitions=competitions, currentDate=todayDate
         )
-        return render_template("welcome.html", club=club, competitions=competitions)
-
-    else:
-        flash(f"Not enough points, you can only book {club['points']}.")
-        return render_template("welcome.html", club=club, competitions=competitions)
 
 
 @app.route("/dashboard")
