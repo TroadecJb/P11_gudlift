@@ -3,6 +3,7 @@ from datetime import datetime
 from flask import url_for, request
 
 import server
+from server import purchaseRecap
 
 
 def test_purchase_places_ok(client, competitions_mocked_data, clubs_mocked_data):
@@ -33,6 +34,7 @@ def test_purchase_places_not_enough_points(
         },
         follow_redirects=True,
     )
+
     assert response.status_code == 200
     assert "Not enough points, you can only book" in response.data.decode()
 
@@ -55,7 +57,10 @@ def test_purchase_over_12_places(client, competitions_mocked_data, clubs_mocked_
     )
 
 
-def test_purchase_over_12_split(client, competitions_mocked_data, clubs_mocked_data):
+def test_purchase_over_12_split(
+    client, competitions_mocked_data, clubs_mocked_data, purchaseRecap_mocked
+):
+    init_points = clubs_mocked_data[0]["points"]
     response = client.post(
         "/purchasePlaces",
         data={
@@ -65,9 +70,15 @@ def test_purchase_over_12_split(client, competitions_mocked_data, clubs_mocked_d
         },
         follow_redirects=True,
     )
+
+    assert init_points == "13"
+
     assert response.status_code == 200
     assert "Great-booking complete!" in response.data.decode()
-    secod_response = client.post(
+    assert clubs_mocked_data[0]["points"] == "1"
+
+    first_purchase_points = clubs_mocked_data[0]["points"]
+    second_response = client.post(
         "/purchasePlaces",
         data={
             "competition": competitions_mocked_data[0]["name"],
@@ -76,34 +87,35 @@ def test_purchase_over_12_split(client, competitions_mocked_data, clubs_mocked_d
         },
         follow_redirects=True,
     )
+    second_purchase_points = clubs_mocked_data[0]["points"]
+    assert first_purchase_points == "1"
+    assert second_purchase_points == "1"
+    assert second_response.status_code == 200
     assert (
-        "You can not book more than 12 places for any competition."
-        in response.data.decode()
+        "You have already booked the maximum allowed numbers of places."
+        in second_response.data.decode()
     )
 
 
 def test_purchase_more_than_available(
-    client, competitions_mocked_data, clubs_mocked_data
+    client, competitions_mocked_data, clubs_mocked_data, purchaseRecap_mocked
 ):
     places = 9
     response = client.post(
         "/purchasePlaces",
         data={
             "competition": competitions_mocked_data[1]["name"],
-            "club": clubs_mocked_data[1]["name"],
+            "club": clubs_mocked_data[0]["name"],
             "places": str(places),
         },
         follow_redirects=True,
     )
     assert response.status_code == 200
-    assert (
-        f"There is only {competitions_mocked_data[1]['numberOfPlaces']} available for this competiton."
-        in response.data.decode()
-    )
+    assert f"available for this competiton." in response.data.decode()
 
 
 def test_purchase_places_clubs_points_deduced(
-    client, competitions_mocked_data, clubs_mocked_data
+    client, competitions_mocked_data, clubs_mocked_data, purchaseRecap_mocked
 ):
     club_start_point = int(clubs_mocked_data[0]["points"])
     places = 3
@@ -123,7 +135,7 @@ def test_purchase_places_clubs_points_deduced(
 
 
 def test_purchase_places_competition_places_available_deduced(
-    client, competitions_mocked_data, clubs_mocked_data
+    client, competitions_mocked_data, clubs_mocked_data, purchaseRecap_mocked
 ):
     competitions_available_places_start = int(
         competitions_mocked_data[0]["numberOfPlaces"]

@@ -83,13 +83,21 @@ def purchasePlaces():
 
     todayDate = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # ajouter dictionnaire de controle split purchase
-    # try:
-    #     bookedPlaces = purchaseRecap[competitionName][clubName]
-    # except KeyError:
-    #     purchaseRecap[competitionName] = {clubName: "0"}
-    # finally:
-    #     bookedPlaces = purchaseRecap[competitionName][clubName]
+    # control for total purchases of club in comp
+    alreadyPurchasedPlaces = 0
+    if purchaseRecap.get(competitionName) is not None:
+        competitionPurchaseRecap = purchaseRecap[competitionName][0]
+
+        if competitionPurchaseRecap.get(clubName) is not None:
+            alreadyPurchasedPlaces = int(competitionPurchaseRecap[clubName])
+        else:
+            purchaseRecap[competitionName].append(
+                {clubName: str(alreadyPurchasedPlaces)}
+            )
+    else:
+        purchaseRecap[competitionName] = [{clubName: str(alreadyPurchasedPlaces)}]
+
+    totalPurchasedPlaces = alreadyPurchasedPlaces + placesRequired
 
     # logic for booking
     if todayDate > competition["date"]:
@@ -100,6 +108,16 @@ def purchasePlaces():
             competitions=competitions,
             currentDate=todayDate,
         )
+    elif alreadyPurchasedPlaces == 12:
+        flash("You have already booked the maximum allowed numbers of places.")
+        return render_template(
+            "welcome.html", club=club, competitions=competitions, currentDate=todayDate
+        )
+    elif int(club["points"]) < placesRequired:
+        flash(f"Not enough points, you can only book {club['points']} places")
+        return render_template(
+            "welcome.html", club=club, competitions=competitions, currentDate=todayDate
+        )
 
     elif placesRequired > int(competition["numberOfPlaces"]):
         flash(
@@ -108,32 +126,22 @@ def purchasePlaces():
         return render_template(
             "welcome.html", club=club, competitions=competitions, currentDate=todayDate
         )
-
-    elif placesRequired > 12:
-        flash(f"You can not book more than 12 places for any competition.")
-        return render_template(
-            "welcome.html", club=club, competitions=competitions, currentDate=todayDate
-        )
-
-    elif placesRequired > int(club["points"]):
-        flash(f"Not enough points, you can only book {club['points']}.")
+    elif totalPurchasedPlaces > 12:
+        flash("You can not book more than 12 places for any competition.")
         return render_template(
             "welcome.html", club=club, competitions=competitions, currentDate=todayDate
         )
 
     else:
-        club["points"] = int(club["points"]) - placesRequired
-        competition["numberOfPlaces"] = (
-            int(competition["numberOfPlaces"]) - placesRequired
-        )
+        updatedClubPoints = int(club["points"]) - placesRequired
+        updatedCompetitionPlaces = int(competition["numberOfPlaces"]) - placesRequired
 
         # updatating loaded competitions & clubs global
-        competitions[competitionIndex]["numberOfPlaces"] = str(
-            competition["numberOfPlaces"]
-        )
-        clubs[clubIndex]["points"] = str(club["points"])
+        competitions[competitionIndex]["numberOfPlaces"] = str(updatedCompetitionPlaces)
+        clubs[clubIndex]["points"] = str(updatedClubPoints)
+
         # adding key/value to count how many places a club purchases for a competition, even if doig multiple purchases.
-        competitions[competitionIndex][club["name"]] += str(placesRequired)
+        purchaseRecap[competitionName][0][clubName] = str(totalPurchasedPlaces)
 
         flash("Great-booking complete!")
         return render_template(

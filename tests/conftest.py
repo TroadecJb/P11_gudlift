@@ -57,3 +57,9 @@ def clubs_mocked_data():
         },
     ]
     return server.clubs
+
+
+@pytest.fixture(scope="function")
+def purchaseRecap_mocked():
+    server.purchaseRecap = {}
+    return server.purchaseRecap
