@@ -187,7 +187,7 @@ def test_purchase_places_past_competition(
 ):
     past_competition_date = competitions_mocked_data[2]["date"]
     past_competition_number_places = competitions_mocked_data[2]["numberOfPlaces"]
-    todayDate = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    currentDate = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     places = 3
 
     response = client.post(
@@ -200,7 +200,7 @@ def test_purchase_places_past_competition(
         follow_redirects=True,
     )
     assert response.status_code == 200
-    assert todayDate > past_competition_date
+    assert currentDate > past_competition_date
     assert "This competition is over." in response.data.decode()
     assert (
         competitions_mocked_data[2]["numberOfPlaces"] == past_competition_number_places

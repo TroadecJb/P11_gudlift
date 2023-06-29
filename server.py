@@ -81,7 +81,7 @@ def purchasePlaces():
     # places related var
     placesRequired = int(request.form["places"])
 
-    todayDate = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    currentDate = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     # control for total purchases of club in comp
     alreadyPurchasedPlaces = 0
@@ -100,23 +100,29 @@ def purchasePlaces():
     totalPurchasedPlaces = alreadyPurchasedPlaces + placesRequired
 
     # logic for booking
-    if todayDate > competition["date"]:
+    if currentDate > competition["date"]:
         flash(f"This competition is over.")
         return render_template(
             "welcome.html",
             club=club,
             competitions=competitions,
-            currentDate=todayDate,
+            currentDate=currentDate,
         )
     elif alreadyPurchasedPlaces == 12:
         flash("You have already booked the maximum allowed numbers of places.")
         return render_template(
-            "welcome.html", club=club, competitions=competitions, currentDate=todayDate
+            "welcome.html",
+            club=club,
+            competitions=competitions,
+            currentDate=currentDate,
         )
     elif int(club["points"]) < placesRequired:
         flash(f"Not enough points, you can only book {club['points']} places")
         return render_template(
-            "welcome.html", club=club, competitions=competitions, currentDate=todayDate
+            "welcome.html",
+            club=club,
+            competitions=competitions,
+            currentDate=currentDate,
         )
 
     elif placesRequired > int(competition["numberOfPlaces"]):
@@ -124,12 +130,18 @@ def purchasePlaces():
             f"There is only {competition['numberOfPlaces']} available for this competiton."
         )
         return render_template(
-            "welcome.html", club=club, competitions=competitions, currentDate=todayDate
+            "welcome.html",
+            club=club,
+            competitions=competitions,
+            currentDate=currentDate,
         )
     elif totalPurchasedPlaces > 12:
         flash("You can not book more than 12 places for any competition.")
         return render_template(
-            "welcome.html", club=club, competitions=competitions, currentDate=todayDate
+            "welcome.html",
+            club=club,
+            competitions=competitions,
+            currentDate=currentDate,
         )
 
     else:
@@ -145,7 +157,10 @@ def purchasePlaces():
 
         flash("Great-booking complete!")
         return render_template(
-            "welcome.html", club=club, competitions=competitions, currentDate=todayDate
+            "welcome.html",
+            club=club,
+            competitions=competitions,
+            currentDate=currentDate,
         )
 
 
