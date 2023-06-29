@@ -30,7 +30,7 @@ def test_logout_status_ok(client, clubs_mocked_data):
     )
     assert logged_in.status_code == 200
     loggin_out = client.get("/logout", follow_redirects=True)
-    assert request.path == url_for("index")
+    assert loggin_out.request.path == url_for("index")
     assert loggin_out.status_code == 200
     back_in = client.get("/showSummary")
     assert back_in.status_code == 405
