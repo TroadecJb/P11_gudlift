@@ -2,9 +2,6 @@ import pytest
 from datetime import datetime
 from flask import url_for, request
 
-import server
-from server import purchaseRecap
-
 
 def test_cant_book_future_competition_ok(
     client, competitions_mocked_data, clubs_mocked_data
