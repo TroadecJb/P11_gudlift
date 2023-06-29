@@ -83,7 +83,7 @@ def purchasePlaces():
 
     todayDate = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # control for total purchases of club in comp
+    # control for total purchases for the club in this competition
     alreadyPurchasedPlaces = 0
     if purchaseRecap.get(competitionName) is not None:
         competitionPurchaseRecap = purchaseRecap[competitionName][0]
@@ -140,7 +140,7 @@ def purchasePlaces():
         competitions[competitionIndex]["numberOfPlaces"] = str(updatedCompetitionPlaces)
         clubs[clubIndex]["points"] = str(updatedClubPoints)
 
-        # adding key/value to count how many places a club purchases for a competition, even if doig multiple purchases.
+        # adding key/value to count how many places a club purchases for a competition, even if doing multiple purchases.
         purchaseRecap[competitionName][0][clubName] = str(totalPurchasedPlaces)
 
         flash("Great-booking complete!")
