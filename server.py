@@ -149,9 +149,7 @@ def purchasePlaces():
         )
 
 
-@app.route("/dashboard")
-def dashboard():
-    return render_template("board.html", clubs=clubs)
+# TODO: Add route for points display
 
 
 @app.route("/logout")
