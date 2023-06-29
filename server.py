@@ -31,8 +31,9 @@ def index():
 @app.route("/showSummary", methods=["POST"])
 def showSummary():
     currentDate = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    email = request.form["email"]
     try:
-        club = [club for club in clubs if club["email"] == request.form["email"]][0]
+        club = [club for club in clubs if club["email"] == email][0]
     except IndexError:
         flash("Invalid email address")
         return redirect(url_for("index"))
@@ -51,11 +52,10 @@ def book(competition, club):
     foundClub = [c for c in clubs if c["name"] == club][0]
     foundCompetition = [c for c in competitions if c["name"] == competition][0]
 
-    if foundClub and foundCompetition:
+    if foundClub and foundCompetition and foundCompetition["date"] > currentDate:
         return render_template(
             "booking.html", club=foundClub, competition=foundCompetition
         )
-
     else:
         flash("Something went wrong-please try again")
         return render_template(
@@ -157,7 +157,3 @@ def dashboard():
 @app.route("/logout")
 def logout():
     return redirect(url_for("index"))
-
-
-if __name__ == "__main__":
-    app.run()

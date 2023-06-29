@@ -6,6 +6,26 @@ import server
 from server import purchaseRecap
 
 
+def test_cant_book_future_competition_ok(
+    client, competitions_mocked_data, clubs_mocked_data
+):
+    response = client.get(
+        f"/book/{competitions_mocked_data[0]['name']}/{clubs_mocked_data[0]['name']}"
+    )
+    assert response.status_code == 200
+    assert f"<h2>{competitions_mocked_data[0]['name']}</h2>" in response.data.decode()
+
+
+def test_can_book_past_competition_ok(
+    client, competitions_mocked_data, clubs_mocked_data
+):
+    response = client.get(
+        f"/book/{competitions_mocked_data[2]['name']}/{clubs_mocked_data[0]['name']}"
+    )
+    assert response.status_code == 200
+    assert "Something went wrong-please try again" in response.data.decode()
+
+
 def test_purchase_places_ok(client, competitions_mocked_data, clubs_mocked_data):
     places = 3
     response = client.post(
@@ -187,7 +207,7 @@ def test_purchase_places_past_competition(
     )
 
 
-def test_purchase_places_link_available_based_on_date(
+def test_showSummary_link_available_based_on_date(
     client, competitions_mocked_data, clubs_mocked_data
 ):
     response = client.post(

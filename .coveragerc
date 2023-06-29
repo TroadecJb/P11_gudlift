@@ -1,0 +1,6 @@
+[run]
+omit = tests/*, config.py
+
+
+[html]
+directory = coverage_html_report
